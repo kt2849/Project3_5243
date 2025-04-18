@@ -107,29 +107,33 @@ if current_idx < len(stimuli):
     if "start_time" not in st.session_state:
         st.session_state.start_time = time.time()
         
-    answer = st.radio("Is this statement true or false?", ["True", "False"])
+    answer = st.radio("Is this statement true or false?", ["True", "False"], index=None)
 
     if st.session_state.group == "Explain":
         response_text = st.text_area("Explain your answer:")
     else:
         response_text = st.text_area("How does this statement make you feel:")
 
-    if st.button("Submit and Continue"): # only if they finished the experiment and data will be saved
-        rt = round(time.time() - st.session_state.start_time, 2)
-        st.session_state.responses.append({
-            "participant_id": st.session_state.participant_id,
-            "group": st.session_state.group,
-            "stimulus_id": stim["id"],
-            "text": stim["text"],
-            "truth": stim["truth"],
-            "photo": stim["photo"],
-            "show_photo": stim["show_photo"],
-            "answer": answer,
-            "response_text": response_text,
-            "response_time": rt
-        })
-        st.session_state.current_index += 1
-        st.rerun()
+    if st.button("Submit and Continue"):
+        if answer is None or response_text.strip() == "":
+            st.warning("Please complete both parts before continuing.")
+        else:
+            rt = round(time.time() - st.session_state.start_time, 2)
+            st.session_state.responses.append({
+                "participant_id": st.session_state.participant_id,
+                "group": st.session_state.group,
+                "stimulus_id": stim["id"],
+                "text": stim["text"],
+                "truth": stim["truth"],
+                "photo": stim["photo"],
+                "show_photo": stim["show_photo"],
+                "answer": answer,
+                "response_text": response_text,
+                "response_time": rt
+            })
+            st.session_state.current_index += 1
+            st.rerun()
+
 else:
     st.balloons()
     st.success("Thank you for participating! Your responses have been saved.")
