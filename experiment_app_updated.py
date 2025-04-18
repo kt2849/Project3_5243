@@ -1,5 +1,3 @@
-# app.py — Project 3 “super‑deluxe” (100 % new‑query‑API)
-
 from __future__ import annotations
 import json, random, sys, time, uuid, platform
 from dataclasses import dataclass
