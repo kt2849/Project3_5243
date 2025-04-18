@@ -6,6 +6,22 @@ import random
 import uuid
 import json
 import os
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+
+def save_to_google_sheets(df, sheet_name="Responses"):
+    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    
+    # Load credentials from Streamlit Cloud Secrets
+    creds_dict = json.loads(st.secrets["GSPREAD_KEY"])
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+    
+    client = gspread.authorize(creds)
+    sheet = client.open("Trivia_Responses").worksheet(sheet_name)
+
+    # Append each row to the sheet
+    for _, row in df.iterrows():
+        sheet.append_row(row.astype(str).tolist())
 
 with open("stimuli.json", "r") as f:
     full_stimuli = json.load(f)
@@ -127,6 +143,7 @@ else:
         df = pd.concat([existing, df], ignore_index=True)
 
     df.to_csv(master_file, index=False)
+    save_to_google_sheets(df) 
 
     # DEBRIEFING
     # this is needed since experiment has the element of deceiving people
