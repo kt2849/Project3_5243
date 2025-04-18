@@ -28,10 +28,10 @@ def create_balanced_stimuli(n_true=8, n_false=8, n_photo_each=4):
     sampled_true = random.sample(true_pool, n_true)
     sampled_false = random.sample(false_pool, n_false)
     def assign_photos(sampled, n_photo):
-        with_photo = [s for s in sampled if s["photo"]]
+        with_photo = [s for s in sampled if s.get("photo", "").endswith(".png")]
         selected_ids = set(s["id"] for s in random.sample(with_photo, min(n_photo, len(with_photo))))
         for s in sampled:
-            s["show_photo"] = s["id"] in selected_ids
+            s["show_photo"] = s["id"] in selected_ids and s.get("photo", "").endswith(".png")
         return sampled
     balanced_true = assign_photos(sampled_true, n_photo_each)
     balanced_false = assign_photos(sampled_false, n_photo_each)
