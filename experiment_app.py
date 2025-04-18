@@ -88,7 +88,9 @@ if current_idx < len(stimuli):
     if stim["show_photo"] and image_path and os.path.exists(image_path):
         st.image(image_path, width=300)
 
-    start_time = time.time()
+    if "start_time" not in st.session_state:
+        st.session_state.start_time = time.time()
+        
     answer = st.radio("Is this statement true or false?", ["True", "False"])
 
     if st.session_state.group == "Explain":
@@ -97,7 +99,7 @@ if current_idx < len(stimuli):
         response_text = st.text_area("How does this statement make you feel:")
 
     if st.button("Submit and Continue"): # only if they finished the experiment and data will be saved
-        rt = round(time.time() - start_time, 2)
+        rt = round(time.time() - st.session_state.start_time, 2)
         st.session_state.responses.append({
             "participant_id": st.session_state.participant_id,
             "group": st.session_state.group,
