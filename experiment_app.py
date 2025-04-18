@@ -108,6 +108,7 @@ if current_idx < len(stimuli):
         })
         st.session_state.current_index += 1
         st.experimental_rerun()
+        st.stop()
 else:
     st.balloons()
     st.success("Thank you for participating! Your responses have been saved.")
