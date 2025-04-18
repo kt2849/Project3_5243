@@ -11,7 +11,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 def save_to_google_sheets(df, sheet_name="Responses"):
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    creds_dict = json.loads(st.secrets["GSPREAD_KEY"])
+    creds_dict = st.secrets["GSPREAD_KEY"]  # No json.loads() here
     creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
     client = gspread.authorize(creds)
     sheet = client.open("Trivia_Responses").worksheet(sheet_name)
