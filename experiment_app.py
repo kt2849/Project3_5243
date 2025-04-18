@@ -81,8 +81,12 @@ if current_idx < len(stimuli):
     st.subheader(f"Statement {current_idx + 1} of {len(stimuli)}")
     st.write(stim["text"])
 
-    if stim["show_photo"] and stim["photo"]:
-        st.image(os.path.join("images", stim["photo"]), width=300)
+    # Build image path if a photo is assigned
+    image_path = os.path.join("images", stim["photo"]) if stim["photo"] else None
+
+    # Check if image file exists before trying to display it
+    if stim["show_photo"] and image_path and os.path.exists(image_path):
+        st.image(image_path, width=300)
 
     start_time = time.time()
     answer = st.radio("Is this statement true or false?", ["True", "False"])
