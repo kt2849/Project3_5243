@@ -27,17 +27,34 @@ false_pool = [s for s in full_stimuli if not s["truth"]]
 def create_balanced_stimuli(n_true=8, n_false=8, n_photo_each=4):
     sampled_true = random.sample(true_pool, n_true)
     sampled_false = random.sample(false_pool, n_false)
-    def assign_photos(sampled, n_photo):
-        with_photo = [s for s in sampled if s.get("photo", "").endswith(".png")]
-        selected_ids = set(s["id"] for s in random.sample(with_photo, min(n_photo, len(with_photo))))
-        for s in sampled:
-            s["show_photo"] = s["id"] in selected_ids and s.get("photo", "").endswith(".png")
-        return sampled
-    balanced_true = assign_photos(sampled_true, n_photo_each)
-    balanced_false = assign_photos(sampled_false, n_photo_each)
-    final_list = balanced_true + balanced_false
-    random.shuffle(final_list)
-    return final_list
+
+    # Combine and shuffle first
+    combined = sampled_true + sampled_false
+    random.shuffle(combined)
+
+    # Select items with valid photos
+    with_photo_candidates = [s for s in combined if s.get("photo", "").endswith(".png")]
+
+    # Randomly pick 8 total to show photo (4 from true pool, 4 from false)
+    photo_ids = set()
+    true_count = 0
+    false_count = 0
+    random.shuffle(with_photo_candidates)
+    for s in with_photo_candidates:
+        if s["truth"] and true_count < n_photo_each:
+            photo_ids.add(s["id"])
+            true_count += 1
+        elif not s["truth"] and false_count < n_photo_each:
+            photo_ids.add(s["id"])
+            false_count += 1
+        if true_count == n_photo_each and false_count == n_photo_each:
+            break
+
+    # Assign show_photo flag
+    for s in combined:
+        s["show_photo"] = s["id"] in photo_ids
+
+    return combined
 
 if "participant_id" not in st.session_state:
     st.session_state.participant_id = str(uuid.uuid4())
