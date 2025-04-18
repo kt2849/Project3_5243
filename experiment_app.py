@@ -100,6 +100,14 @@ if current_idx < len(stimuli):
     st.write(stim["text"])
 
     image_path = os.path.join("images", stim["photo"]) if stim["photo"] else None
+    
+    # 🔍 Debugging output
+    st.markdown("**🛠️ DEBUG INFO**")
+    st.write("Current ID:", stim["id"])
+    st.write("Photo file:", stim["photo"])
+    st.write("Should show photo?", stim["show_photo"])
+    st.write("Image path exists?", os.path.exists(image_path) if image_path else "None")
+    
     if stim["show_photo"] and image_path and os.path.exists(image_path):
         with open(image_path, "rb") as img_file:
             st.image(img_file.read(), width=300)
