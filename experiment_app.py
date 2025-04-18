@@ -115,7 +115,7 @@ if current_idx < len(stimuli):
         response_text = st.text_area("How does this statement make you feel:")
 
     if st.button("Submit and Continue"):
-        if answer is None or response_text.strip() == "":
+        if answer == "-- Select an answer --" or response_text.strip() == "":
             st.warning("Please complete both parts before continuing.")
         else:
             rt = round(time.time() - st.session_state.start_time, 2)
@@ -133,7 +133,7 @@ if current_idx < len(stimuli):
             })
             st.session_state.current_index += 1
             st.rerun()
-
+            
 else:
     st.balloons()
     st.success("Thank you for participating! Your responses have been saved.")
