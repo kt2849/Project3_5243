@@ -70,7 +70,7 @@ if st.session_state.current_index == 0 and not st.session_state.get("instruction
     """)
     if st.button("Start Quiz"):
         st.session_state.instructions_shown = True
-        st.experimental_rerun()
+        st.rerun()
     st.stop()
 
 stimuli = st.session_state.stimuli_subset
@@ -107,8 +107,7 @@ if current_idx < len(stimuli):
             "response_time": rt
         })
         st.session_state.current_index += 1
-        st.experimental_rerun()
-        st.stop()
+        st.rerun()
 else:
     st.balloons()
     st.success("Thank you for participating! Your responses have been saved.")
