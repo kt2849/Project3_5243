@@ -11,15 +11,10 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 def save_to_google_sheets(df, sheet_name="Responses"):
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    
-    # Load credentials from Streamlit Cloud Secrets
     creds_dict = json.loads(st.secrets["GSPREAD_KEY"])
     creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
-    
     client = gspread.authorize(creds)
     sheet = client.open("Trivia_Responses").worksheet(sheet_name)
-
-    # Append each row to the sheet
     for _, row in df.iterrows():
         sheet.append_row(row.astype(str).tolist())
 
@@ -32,23 +27,18 @@ false_pool = [s for s in full_stimuli if not s["truth"]]
 def create_balanced_stimuli(n_true=8, n_false=8, n_photo_each=4):
     sampled_true = random.sample(true_pool, n_true)
     sampled_false = random.sample(false_pool, n_false)
-
     def assign_photos(sampled, n_photo):
         with_photo = [s for s in sampled if s["photo"]]
         selected_ids = set(s["id"] for s in random.sample(with_photo, min(n_photo, len(with_photo))))
         for s in sampled:
             s["show_photo"] = s["id"] in selected_ids
         return sampled
-
     balanced_true = assign_photos(sampled_true, n_photo_each)
     balanced_false = assign_photos(sampled_false, n_photo_each)
-
     final_list = balanced_true + balanced_false
     random.shuffle(final_list)
     return final_list
 
-#for storing infomation purpose
-#participant idf, group they are assigned to, which subset of stimuli they got and their responses
 if "participant_id" not in st.session_state:
     st.session_state.participant_id = str(uuid.uuid4())
 
@@ -64,9 +54,7 @@ if "responses" not in st.session_state:
 if "current_index" not in st.session_state:
     st.session_state.current_index = 0
 
-# UI
 st.title("Trivia!")
-# Instruction screen (before first question)
 if st.session_state.current_index == 0 and not st.session_state.get("instructions_shown", False):
     st.markdown("### Instructions")
     st.markdown("""
@@ -80,10 +68,7 @@ if st.session_state.current_index == 0 and not st.session_state.get("instruction
         st.markdown("- Provide a **brief explanation** of why you think the statement is true or false.")
     else:
         st.markdown("- Share **how the statement makes you feel** — your emotional response.")
-
-    st.markdown("""
-    Please answer as accurately and thoughtfully as you can. The quiz will begin once you click the button below.
-    """)
+    st.markdown("Please answer as accurately and thoughtfully as you can. The quiz will begin once you click the button below.")
     if st.button("Start Quiz"):
         st.session_state.instructions_shown = True
         st.rerun()
@@ -97,22 +82,19 @@ if current_idx < len(stimuli):
     st.subheader(f"Statement {current_idx + 1} of {len(stimuli)}")
     st.write(stim["text"])
 
-    # Build image path if a photo is assigned
     image_path = os.path.join("images", stim["photo"]) if stim["photo"] else None
-
-    # Check if image file exists before trying to display it
     if stim["show_photo"] and image_path and os.path.exists(image_path):
-        st.image(image_path, width=300)
+        with open(image_path, "rb") as img_file:
+            st.image(img_file.read(), width=300)
 
     if "start_time" not in st.session_state:
         st.session_state.start_time = time.time()
-        
-    answer = st.radio("Is this statement true or false?", ["True", "False"], index=None)
 
-    if st.session_state.group == "Explain":
-        response_text = st.text_area("Explain your answer:")
-    else:
-        response_text = st.text_area("How does this statement make you feel:")
+    answer = st.radio("Is this statement true or false?", ["-- Select an answer --", "True", "False"], key=f"radio_{current_idx}")
+    response_text = st.text_area(
+        "Explain your answer:" if st.session_state.group == "Explain" else "How does this statement make you feel:",
+        key=f"text_{current_idx}"
+    )
 
     if st.button("Submit and Continue"):
         if answer == "-- Select an answer --" or response_text.strip() == "":
@@ -133,25 +115,17 @@ if current_idx < len(stimuli):
             })
             st.session_state.current_index += 1
             st.rerun()
-            
 else:
     st.balloons()
     st.success("Thank you for participating! Your responses have been saved.")
-
-    # Save to master file
     df = pd.DataFrame(st.session_state.responses)
     master_file = "all_responses.csv"
-
     if os.path.exists(master_file):
         existing = pd.read_csv(master_file)
         df = pd.concat([existing, df], ignore_index=True)
-
     df.to_csv(master_file, index=False)
-    save_to_google_sheets(df) 
-
-    # DEBRIEFING
-    # this is needed since experiment has the element of deceiving people
-    st.markdown("### 📘 Debriefing")
+    save_to_google_sheets(df)
+    st.markdown("### Debriefing")
     st.markdown("""
     Thank you for completing this short trivia survey!
 
